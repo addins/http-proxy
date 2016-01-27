@@ -39,6 +39,11 @@ final class ProxyConfig {
     private final static Logger LOGGER = Logger.getLogger(ProxyConfig.class.toString());
 
     /**
+     * An address of geoserver to be proxied.
+     */
+    private String geoserverAddress;
+    
+    /**
      * A list of regular expressions describing hostnames the proxy is permitted to forward to
      */
     private Set<String> hostnameWhitelist = new HashSet<String>();
@@ -113,6 +118,13 @@ final class ProxyConfig {
      */
     private void configProxy() {
         Properties props = propertiesLoader();
+        
+        // ////////////////////////////////////////////
+        // Load geoserver address from properties file
+        // ////////////////////////////////////////////
+        
+        String geosAddr = props.getProperty("geoserverAddress");
+        this.setGeoserverAddress(geosAddr);
 
         // ////////////////////////////////////////////////////////////
         // Load proxy configuration white lists from properties file
@@ -466,6 +478,20 @@ final class ProxyConfig {
 	 */
 	public void setDefaultStreamByteSize(int defaultStreamByteSize) {
 		this.defaultStreamByteSize = defaultStreamByteSize;
+	}
+
+	/**
+	 * @return geoserver address
+	 */
+	public String getGeoserverAddress() {
+		return geoserverAddress;
+	}
+
+	/**
+	 * @param geoserverAddress
+	 */
+	public void setGeoserverAddress(String geoserverAddress) {
+		this.geoserverAddress = geoserverAddress;
 	}
 
 }

@@ -163,7 +163,8 @@ public class HTTPProxy extends HttpServlet {
 
         callbacks = new ArrayList<ProxyCallback>();
         callbacks.add(new MimeTypeChecker(proxyConfig));
-        callbacks.add(new HostNameChecker(proxyConfig));
+        // no need to do it
+        //callbacks.add(new HostNameChecker(proxyConfig));
         callbacks.add(new RequestTypeChecker(proxyConfig));
         callbacks.add(new MethodsChecker(proxyConfig));
         callbacks.add(new HostChecker(proxyConfig));
@@ -246,25 +247,20 @@ public class HTTPProxy extends HttpServlet {
         try {
 
             URL url = null;
-            String user = null, password = null;
+            String user = null, password = null;            
+            
+            String pathInfo = httpServletRequest.getPathInfo();
+            
+            String queryString = httpServletRequest.getQueryString();
 
-            Set<?> entrySet = httpServletRequest.getParameterMap().entrySet();
 
-            for (Object anEntrySet : entrySet) {
-                Map.Entry header = (Map.Entry) anEntrySet;
-                String key = (String) header.getKey();
-                String value = ((String[]) header.getValue())[0];
-
-                if ("user".equals(key)) {
-                    user = value;
-                } else if ("password".equals(key)) {
-                    password = value;
-                } else if ("url".equals(key)) {
-                    url = new URL(value);
-                }
-            }
-
-            if (url != null) {
+            if (queryString != null && !queryString.isEmpty()) {
+            	
+            	user = httpServletRequest.getParameter("user");
+            	
+            	password = httpServletRequest.getParameter("password");
+            	
+            	url = new URL(proxyConfig.getGeoserverAddress()+pathInfo+"?"+queryString);
 
                 onInit(httpServletRequest, httpServletResponse, url);
 
@@ -309,8 +305,16 @@ public class HTTPProxy extends HttpServlet {
 
             URL url = null;
             String user = null, password = null;
+            
             //Parse the queryString to not read the request body calling getParameter from httpServletRequest
             // so the method can simply forward the request body
+            
+            String pathInfo = httpServletRequest.getPathInfo();
+            
+            String queryString = httpServletRequest.getQueryString();
+        	
+        	url = new URL(proxyConfig.getGeoserverAddress()+pathInfo+"?"+queryString);
+            
             Map<String,String> pars=  splitQuery(httpServletRequest.getQueryString());
 
             for (String  key : pars.keySet()) {
@@ -321,8 +325,6 @@ public class HTTPProxy extends HttpServlet {
                     user = value;
                 } else if ("password".equals(key)) {
                     password = value;
-                } else if ("url".equals(key)) {
-                    url = new URL(value);
                 }
             }
 
@@ -381,9 +383,16 @@ public class HTTPProxy extends HttpServlet {
 
             URL url = null;
             String user = null, password = null;
-          //Parse the queryString to not read the request body calling getParameter from httpServletRequest
+            //Parse the queryString to not read the request body calling getParameter from httpServletRequest
             // so the method can simply forward the request body
-            Map<String,String> pars=  splitQuery(httpServletRequest.getQueryString());
+            
+            String pathInfo = httpServletRequest.getPathInfo();
+            
+            String queryString = httpServletRequest.getQueryString();
+        	
+        	url = new URL(proxyConfig.getGeoserverAddress()+pathInfo+"?"+queryString);
+        	
+            Map<String,String> pars=  splitQuery(queryString);
 
             for (String  key : pars.keySet()) {
 
@@ -393,9 +402,7 @@ public class HTTPProxy extends HttpServlet {
                     user = value;
                 } else if ("password".equals(key)) {
                     password = value;
-                } else if ("url".equals(key)) {
-                    url = new URL(value);
-                }
+                } 
             }
             if (url != null) {
 
@@ -454,8 +461,15 @@ public class HTTPProxy extends HttpServlet {
             URL url = null;
             String user = null, password = null;
 
-          //Parse the queryString to not read the request body calling getParameter from httpServletRequest
-            Map<String,String> pars=  splitQuery(httpServletRequest.getQueryString());
+            //Parse the queryString to not read the request body calling getParameter from httpServletRequest
+            
+            String pathInfo = httpServletRequest.getPathInfo();
+            
+            String queryString = httpServletRequest.getQueryString();
+        	
+        	url = new URL(proxyConfig.getGeoserverAddress()+pathInfo+"?"+queryString);
+        	
+            Map<String,String> pars=  splitQuery(queryString);
 
             for (String  key : pars.keySet()) {
 

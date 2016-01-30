@@ -30,7 +30,6 @@ import java.util.Enumeration;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -211,6 +210,7 @@ public class HTTPProxy extends HttpServlet {
      */
     void onInit(HttpServletRequest request, HttpServletResponse response, URL url)
             throws IOException {
+    	LOGGER.log(Level.INFO, "url req: "+url);
         for (ProxyCallback callback : callbacks) {
             callback.onRequest(request, response, url);
         }
@@ -246,45 +246,49 @@ public class HTTPProxy extends HttpServlet {
 
         try {
 
-            URL url = null;
-            String user = null, password = null;            
-            
-            String pathInfo = httpServletRequest.getPathInfo();
-            
-            String queryString = httpServletRequest.getQueryString();
+			URL url = null;
+			String user = null, password = null;
 
+			String pathInfo = httpServletRequest.getPathInfo();
 
-            if (queryString != null && !queryString.isEmpty()) {
-            	
-            	user = httpServletRequest.getParameter("user");
-            	
-            	password = httpServletRequest.getParameter("password");
-            	
-            	url = new URL(proxyConfig.getGeoserverAddress()+pathInfo+"?"+queryString);
+			String queryString = httpServletRequest.getQueryString();
 
-                onInit(httpServletRequest, httpServletResponse, url);
+			user = httpServletRequest.getParameter("user");
 
-                // //////////////////////////////
-                // Create a GET request
-                // //////////////////////////////
+			password = httpServletRequest.getParameter("password");
 
-                GetMethod getMethodProxyRequest = new GetMethod(url.toExternalForm());
+			String strUrl = "";
+			if (queryString != null && !queryString.isEmpty()) {
+				strUrl = proxyConfig.getGeoserverAddress() + pathInfo + "?"
+						+ queryString;
+			} else {
+				strUrl = proxyConfig.getGeoserverAddress() + pathInfo;
+			}
 
-                // //////////////////////////////
-                // Forward the request headers
-                // //////////////////////////////
+			url = new URL(strUrl);
 
-                final ProxyInfo proxyInfo = setProxyRequestHeaders(url, httpServletRequest,
-                        getMethodProxyRequest);
+			onInit(httpServletRequest, httpServletResponse, url);
 
-                // //////////////////////////////
-                // Execute the proxy request
-                // //////////////////////////////
+			// //////////////////////////////
+			// Create a GET request
+			// //////////////////////////////
 
-                this.executeProxyRequest(getMethodProxyRequest, httpServletRequest,
-                        httpServletResponse, user, password, proxyInfo);
+			GetMethod getMethodProxyRequest = new GetMethod(
+					url.toExternalForm());
 
-            }
+			// //////////////////////////////
+			// Forward the request headers
+			// //////////////////////////////
+
+			final ProxyInfo proxyInfo = setProxyRequestHeaders(url,
+					httpServletRequest, getMethodProxyRequest);
+
+			// //////////////////////////////
+			// Execute the proxy request
+			// //////////////////////////////
+
+			this.executeProxyRequest(getMethodProxyRequest, httpServletRequest,
+					httpServletResponse, user, password, proxyInfo);
 
         } catch (HttpErrorException ex) {
             httpServletResponse.sendError(ex.getCode(), ex.getMessage());
@@ -313,7 +317,15 @@ public class HTTPProxy extends HttpServlet {
             
             String queryString = httpServletRequest.getQueryString();
         	
-        	url = new URL(proxyConfig.getGeoserverAddress()+pathInfo+"?"+queryString);
+            String strUrl = "";
+			if (queryString != null && !queryString.isEmpty()) {
+				strUrl = proxyConfig.getGeoserverAddress() + pathInfo + "?"
+						+ queryString;
+			} else {
+				strUrl = proxyConfig.getGeoserverAddress() + pathInfo;
+			}
+
+			url = new URL(strUrl);
             
             Map<String,String> pars=  splitQuery(httpServletRequest.getQueryString());
 
@@ -390,7 +402,15 @@ public class HTTPProxy extends HttpServlet {
             
             String queryString = httpServletRequest.getQueryString();
         	
-        	url = new URL(proxyConfig.getGeoserverAddress()+pathInfo+"?"+queryString);
+            String strUrl = "";
+			if (queryString != null && !queryString.isEmpty()) {
+				strUrl = proxyConfig.getGeoserverAddress() + pathInfo + "?"
+						+ queryString;
+			} else {
+				strUrl = proxyConfig.getGeoserverAddress() + pathInfo;
+			}
+
+			url = new URL(strUrl);
         	
             Map<String,String> pars=  splitQuery(queryString);
 
@@ -467,7 +487,15 @@ public class HTTPProxy extends HttpServlet {
             
             String queryString = httpServletRequest.getQueryString();
         	
-        	url = new URL(proxyConfig.getGeoserverAddress()+pathInfo+"?"+queryString);
+            String strUrl = "";
+			if (queryString != null && !queryString.isEmpty()) {
+				strUrl = proxyConfig.getGeoserverAddress() + pathInfo + "?"
+						+ queryString;
+			} else {
+				strUrl = proxyConfig.getGeoserverAddress() + pathInfo;
+			}
+
+			url = new URL(strUrl);
         	
             Map<String,String> pars=  splitQuery(queryString);
 
@@ -791,6 +819,7 @@ public class HTTPProxy extends HttpServlet {
             inputStreamServerResponse = httpMethodProxyRequest
             		.getResponseBodyAsStream();
             
+            
             if(inputStreamServerResponse != null){
                 byte[] b = new byte[proxyConfig.getDefaultStreamByteSize()];
                 
@@ -801,8 +830,29 @@ public class HTTPProxy extends HttpServlet {
     		      	baos.write(b, 0, read);
     		        baos.flush();
     		    }
-    	            
-    		    baos.writeTo(httpServletResponse.getOutputStream());
+    		    
+    		    Header contentType = httpMethodProxyRequest.getResponseHeader("Content-Type");
+    		    boolean isImage = false;
+    		    
+    		    if(contentType != null)
+    		    	isImage = contentType.getValue().contains("image");
+    		    
+    		    // if not image
+				if (!isImage) {
+					// replace any url equals to geoserverAddress with proxy address
+					String re = new String(baos.toByteArray());
+					String regex = proxyConfig.getGeoserverAddress();
+					String replacment = httpServletRequest.getScheme() + "://"
+							+ httpServletRequest.getServerName() + ":"
+							+ httpServletRequest.getServerPort()
+							+ httpServletRequest.getContextPath()
+							+ httpServletRequest.getServletPath();
+					re = re.replaceAll(regex, replacment);
+
+					httpServletResponse.getWriter().print(re);
+				} else {
+					baos.writeTo(httpServletResponse.getOutputStream());
+				}
             }
             
         } catch (HttpException e) {

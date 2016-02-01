@@ -210,7 +210,7 @@ public class HTTPProxy extends HttpServlet {
      */
     void onInit(HttpServletRequest request, HttpServletResponse response, URL url)
             throws IOException {
-    	LOGGER.log(Level.INFO, "url req: "+url);
+    	//LOGGER.log(Level.INFO, "url req: "+url);
         for (ProxyCallback callback : callbacks) {
             callback.onRequest(request, response, url);
         }

@@ -16,7 +16,7 @@
   
     <servlet-mapping>
       <servlet-name>HttpProxy</servlet-name>
-      <url-pattern>/proxy/*</url-pattern>
+      <url-pattern>/*</url-pattern>
     </servlet-mapping>
   
 </web-app>

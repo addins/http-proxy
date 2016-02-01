@@ -109,7 +109,7 @@
 					<webXml>
 						${basedir}/src/main/webapp/WEB-INF/web.xml
 					</webXml>
-					<warName>http_proxy</warName>
+					<warName>geo_proxy</warName>
 				</configuration>
 			</plugin>
 
@@ -118,14 +118,14 @@
 				<artifactId>maven-jetty-plugin</artifactId>
 				<version>6.1.19</version>
 				<configuration>
-					<contextPath>http_proxy</contextPath>
+					<contextPath>geo_proxy</contextPath>
 					<connectors>
 						<connector implementation="org.mortbay.jetty.nio.SelectChannelConnector">
 							<port>8080</port>
 							<maxIdleTime>10000</maxIdleTime>
 						</connector>
 					</connectors>
-					<contextPath>http_proxy</contextPath>
+					<contextPath>geo_proxy</contextPath>
 					<webAppSourceDirectory>${project.build.directory}/${project.artifactId}-${project.version}</webAppSourceDirectory>
 				</configuration>
 			</plugin>
